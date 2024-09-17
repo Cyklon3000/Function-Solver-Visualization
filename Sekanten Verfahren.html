@@ -9,6 +9,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #fff;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -22,11 +24,22 @@
         }
 
         button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
+            background-color: rgb(138, 92, 245);
+            border-radius: 5px;
+            box-sizing: border-box;
+            color: rgb(255, 255, 255);
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 300;
+            padding: 8px 12px;
+            text-align: center;
+            border-style: none;
+            margin-top: 10px;
         }
+
 
         #info {
             margin-top: 20px;
@@ -113,7 +126,7 @@
                         datasets: [
                             {
                                 label: 'Graph von f(x)',
-                                data: {functionPoints},
+                                data: { functionPoints },
                                 showLine: true,
                                 borderColor: 'blue',
                                 backgroundColor: 'transparent',

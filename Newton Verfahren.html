@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newton-Verfahren Visualisierung</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            transition-duration: 0s;
+        }
+
+        #chartContainer {
+            width: 80%;
+            max-width: 800px;
+        }
+
+        button {
+            background-color: rgb(138, 92, 245);
+            border-radius: 5px;
+            box-sizing: border-box;
+            color: rgb(255, 255, 255);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 300;
+            padding: 8px 12px;
+            text-align: center;
+            border-style: none;
+            margin-top: 10px;
+        }
+
+        #info {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Newton-Verfahren Visualisierung</h1>
+    <div id="chartContainer">
+        <canvas id="myChart"></canvas>
+    </div>
+    <button id="nextStep">Nächster Schritt</button>
+    <button onClick="window.location.reload();" id="reload">Neu starten</button>
+    <div id="info"></div>
+
+    <script>
+        const ctx = document.getElementById('myChart').getContext('2d');
+        let chart;
+        let a, b, c;
+        let negativeX = -3, positiveX = 3;
+        let iterations = 0;
+        const coefficientsA = [1]; // slope
+        const coefficientsB = [0.3241, 0.8460, 1.5752, 2.2748]; // x shift
+        const coefficientsC = [6, 8, 10, 12] // y shift
+
+        function randomChoice(arr)
+        {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function inRange(n, min, max)
+        {
+            return (min < n) && (n < max)
+        }
+
+        function initFunction()
+        {
+            a = randomChoice(coefficientsA) * (Math.random() < 0.5 ? -1 : 1);
+            b = randomChoice(coefficientsB) * (Math.random() < 0.5 ? -1 : 1);
+            c = randomChoice(coefficientsC) * -Math.sign(a)
+
+            if ((!inRange(f(positiveX), -40, 40)) || (!inRange(f(negativeX), -40, 40)))
+            {
+                initFunction()
+            }
+
+            if (Math.sign(f(negativeX)) === 1)
+            {
+                negativeX = 3, positiveX = -3;
+            }
+        }
+
+        function f(x)
+        {
+            return (a * x - a * b) * (a * x - a * c)
+        }
+
+        function df(x)
+        {
+            // Die Ableitung von f(x)
+            return 2 * a * (a * x - a * b);
+        }
+
+        function generatePoints()
+        {
+            const points = [];
+            for (let x = -10; x <= 10; x += 0.1)
+            {
+                points.push({ x: x, y: f(x) });
+            }
+            return points;
+        }
+
+        function updateChart()
+        {
+            const functionPoints = generatePoints();
+            const currentPoint = { x: positiveX, y: f(positiveX) };
+            console.log(currentPoint)
+
+            const xIntercept = - (f(positiveX) - df(positiveX) * positiveX) / df(positiveX) // Newton-Schritt
+            const yIntercept = 0;
+
+            if (!chart)
+            {
+                chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            {
+                                label: 'Graph von f(x)',
+                                data: { functionPoints },
+                                showLine: true,
+                                borderColor: 'blue',
+                                backgroundColor: 'transparent',
+                                pointRadius: 0
+                            },
+                            {
+                                label: 'Gesuchter Punkt f(x)=0',
+                                data: [{ x: b, y: 0 }],
+                                borderColor: 'blue',
+                                backgroundColor: 'blue',
+                                pointRadius: 5,
+                                displayColors: false
+                            },
+                            {
+                                label: 'Newton-Schritt Punkt',
+                                data: [currentPoint],
+                                borderColor: 'green',
+                                pointBackgroundColor: 'green',
+                                backgroundColor: 'green',
+                                pointRadius: 5
+                            }
+                        ]
+                    },
+                    options: {
+                        animation: {
+                            duration: 100
+                        },
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                position: 'bottom',
+                                min: -4,
+                                max: 4
+                            },
+                            y: {
+                                type: 'linear',
+                                position: 'left',
+                                min: -40,
+                                max: 40
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    filter: function (legendItem, chartData)
+                                    {
+                                        // Return false to hide the legend item
+                                        return legendItem.text !== 'Element to hide';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } else
+            {
+                chart.data.datasets[0].data = functionPoints;
+                chart.data.datasets[2].data = [currentPoint];
+                chart.update();
+            }
+
+            return xIntercept;
+        }
+
+
+        function nextStep()
+        {
+            iterations++;
+            const xIntercept = - (f(positiveX) - df(positiveX) * positiveX) / df(positiveX) // Newton-Schritt
+            const yIntercept = 1;
+
+            if (Math.abs(yIntercept) < 0.01 || (iterations > 1 && Math.abs(xIntercept - prevIntercept) < 0.01))
+            {
+                document.getElementById('nextStep').disabled = true;
+                document.getElementById('info').innerHTML = `Konvergenz erreicht nach ${iterations} Iterationen.<br>Nullstelle: x ≈ ${xIntercept.toFixed(4)}`;
+                return;
+            }
+
+            positiveX = xIntercept; // Newton-Verfahren verwendet einen einzigen Punkt
+
+            document.getElementById('info').innerHTML = `Iteration ${iterations}<br>Schittpunktnäherung durch Newton-Verfahren bei x = ${xIntercept.toFixed(4)}`;
+            prevIntercept = xIntercept;
+
+            updateChart()
+        }
+
+
+        initFunction();
+        document.getElementById('nextStep').addEventListener('click', nextStep);
+        nextStep()
+    </script>
+</body>
+
+</html>

@@ -19,8 +19,18 @@
         }
 
         #chartContainer {
-            width: 80%;
-            max-width: 800px;
+            width: 90%;
+            max-width: 900px;
+            height: 400px; /* Fixed height of 400px */
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+            justify-content: center;
         }
 
         button {
@@ -32,196 +42,571 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 300;
-            padding: 8px 12px;
+            padding: 10px 15px;
             text-align: center;
             border-style: none;
-            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: rgb(158, 122, 245);
+        }
+
+        button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
         }
 
         #info {
             margin-top: 20px;
             text-align: center;
+            line-height: 1.5;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #2d2d2d;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        .function-display {
+            font-size: 18px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .iteration-details {
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        #tangentLine {
+            color: #66d9ef;
+            font-weight: bold;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            margin-right: 8px;
+            border-radius: 50%;
+        }
+
+        .function-color { background-color: blue; }
+        .tangent-color { background-color: #66d9ef; }
+        .point-color { background-color: green; }
+        .target-color { background-color: red; }
+        
+        .formula {
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .parameter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            margin: 15px 0;
+            width: 80%;
+            max-width: 900px;
+            background-color: #2d2d2d;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .parameter-controls h3 {
+            width: 100%;
+            text-align: center;
+            margin: 5px 0 10px 0;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            margin: 5px 10px;
+            width: calc(50% - 20px);
+            min-width: 250px;
+        }
+
+        .slider-label {
+            width: 100px;
+            text-align: right;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        input[type="range"] {
+            flex-grow: 1;
+        }
+
+        .slider-value {
+            width: 40px;
+            margin-left: 10px;
+            text-align: left;
+            font-size: 14px;
         }
     </style>
 </head>
 
 <body>
     <h1>Newton-Verfahren Visualisierung</h1>
+    
+    <div class="function-display">
+        f(x) = <span id="functionDisplay"></span>
+    </div>
+    
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color function-color"></div>
+            <span>Funktion f(x)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color tangent-color"></div>
+            <span>Tangente</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color point-color"></div>
+            <span>Aktueller Punkt</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color target-color"></div>
+            <span>Nullstelle</span>
+        </div>
+    </div>
+
     <div id="chartContainer">
         <canvas id="myChart"></canvas>
     </div>
-    <button id="nextStep">Nächster Schritt</button>
-    <button onClick="window.location.reload();" id="reload">Neu starten</button>
-    <div id="info"></div>
+    
+    <div class="parameter-controls">
+        <h3>Funktionsparameter</h3>
+        <div class="slider-container">
+            <span class="slider-label">Startpunkt:</span>
+            <input title=none type="range" id="startPointSlider" min="-3" max="3" step="0.1" value="2">
+            <span class="slider-value" id="startPointValue">2.0</span>
+        </div>
+        <div class="slider-container">
+            <span class="slider-label">Parameter a:</span>
+            <input title=none type="range" id="paramASlider" min="-2" max="2" step="0.1" value="1">
+            <span class="slider-value" id="paramAValue">1.0</span>
+        </div>
+        <div class="slider-container">
+            <span class="slider-label">Parameter b:</span>
+            <input title=none type="range" id="paramBSlider" min="-3" max="3" step="0.1" value="1">
+            <span class="slider-value" id="paramBValue">1.0</span>
+        </div>
+        <div class="slider-container">
+            <span class="slider-label">Parameter c:</span>
+            <input title=none type="range" id="paramCSlider" min="-12" max="12" step="1" value="-8">
+            <span class="slider-value" id="paramCValue">-8</span>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button id="nextStep">Nächster Schritt</button>
+        <button id="reset">Zurücksetzen</button>
+        <button onClick="window.location.reload();" id="reload">Neu laden</button>
+    </div>
+    
+    <div id="info">
+        <p>Das Newton-Verfahren nutzt die Tangente am aktuellen Punkt, um die nächste Annäherung zu finden.</p>
+        <p class="formula">x<sub>n+1</sub> = x<sub>n</sub> - f(x<sub>n</sub>) / f'(x<sub>n</sub>)</p>
+        <p>Klicke auf "Nächster Schritt" um zu starten.</p>
+        <div class="iteration-details" id="iterationDetails"></div>
+    </div>
 
     <script>
         const ctx = document.getElementById('myChart').getContext('2d');
         let chart;
         let a, b, c;
-        let negativeX = -3, positiveX = 3;
+        let currentX;
         let iterations = 0;
-        const coefficientsA = [1]; // slope
-        const coefficientsB = [0.3241, 0.8460, 1.5752, 2.2748]; // x shift
-        const coefficientsC = [6, 8, 10, 12] // y shift
+        let animationInProgress = false;
+        let rootFound = false;
+        let prevX = null;
+        
+        // Slider-Elemente
+        const startPointSlider = document.getElementById('startPointSlider');
+        const startPointValue = document.getElementById('startPointValue');
+        const paramASlider = document.getElementById('paramASlider');
+        const paramAValue = document.getElementById('paramAValue');
+        const paramBSlider = document.getElementById('paramBSlider');
+        const paramBValue = document.getElementById('paramBValue');
+        const paramCSlider = document.getElementById('paramCSlider');
+        const paramCValue = document.getElementById('paramCValue');
+        
+        // Event-Listener für Slider
+        startPointSlider.addEventListener('input', function() {
+            startPointValue.textContent = parseFloat(this.value).toFixed(1);
+            if (!animationInProgress) resetFunction(false);
+        });
+        
+        paramASlider.addEventListener('input', function() {
+            paramAValue.textContent = parseFloat(this.value).toFixed(1);
+            if (!animationInProgress) resetFunction(false);
+        });
+        
+        paramBSlider.addEventListener('input', function() {
+            paramBValue.textContent = parseFloat(this.value).toFixed(1);
+            if (!animationInProgress) resetFunction(false);
+        });
+        
+        paramCSlider.addEventListener('input', function() {
+            paramCValue.textContent = this.value;
+            if (!animationInProgress) resetFunction(false);
+        });
 
-        function randomChoice(arr)
-        {
-            return arr[Math.floor(Math.random() * arr.length)];
+        function initFunction() {
+            a = parseFloat(paramASlider.value);
+            b = parseFloat(paramBSlider.value);
+            c = parseFloat(paramCSlider.value);
+            currentX = parseFloat(startPointSlider.value);
+            
+            updateFunctionDisplay();
+            createChart();
+        }
+        
+        function updateFunctionDisplay() {
+            // Formatieren der Funktion für die Anzeige
+            let functionText = `(${a.toFixed(1)}x - ${Math.abs(a*b).toFixed(1)}) × (${a.toFixed(1)}x - ${Math.abs(a*c).toFixed(1)})`;
+            
+            // Vorzeichen korrekt darstellen
+            functionText = functionText.replace('- -', '+ ');
+            document.getElementById('functionDisplay').textContent = functionText;
         }
 
-        function inRange(n, min, max)
-        {
-            return (min < n) && (n < max)
+        function f(x) {
+            return (a * x - a * b) * (a * x - a * c);
         }
 
-        function initFunction()
-        {
-            a = randomChoice(coefficientsA) * (Math.random() < 0.5 ? -1 : 1);
-            b = randomChoice(coefficientsB) * (Math.random() < 0.5 ? -1 : 1);
-            c = randomChoice(coefficientsC) * -Math.sign(a)
-
-            if ((!inRange(f(positiveX), -40, 40)) || (!inRange(f(negativeX), -40, 40)))
-            {
-                initFunction()
-            }
-
-            if (Math.sign(f(negativeX)) === 1)
-            {
-                negativeX = 3, positiveX = -3;
-            }
+        function df(x) {
+            // Die Ableitung von f(x) = (ax-ab)(ax-ac)
+            return 2 * a * a * x - a * a * b - a * a * c;
         }
 
-        function f(x)
-        {
-            return (a * x - a * b) * (a * x - a * c)
-        }
-
-        function df(x)
-        {
-            // Die Ableitung von f(x)
-            return 2 * a * (a * x - a * b);
-        }
-
-        function generatePoints()
-        {
+        function generatePoints(density = 0.1) {
             const points = [];
-            for (let x = -10; x <= 10; x += 0.1)
-            {
+            for (let x = -5; x <= 5; x += density) {
                 points.push({ x: x, y: f(x) });
             }
             return points;
         }
+        
+        function generateTangentPoints(x) {
+            const slope = df(x);
+            const y0 = f(x);
+            const b = y0 - slope * x; // y-Achsenabschnitt
+            
+            // Punktkoordinaten für die Tangentenlinie
+            const x1 = x - 2;
+            const y1 = slope * x1 + b;
+            const x2 = x + 2;
+            const y2 = slope * x2 + b;
+            
+            return [
+                { x: x1, y: y1 },
+                { x: x2, y: y2 }
+            ];
+        }
 
-        function updateChart()
-        {
+        function createChart() {
             const functionPoints = generatePoints();
-            const currentPoint = { x: positiveX, y: f(positiveX) };
-            console.log(currentPoint)
-
-            const xIntercept = - (f(positiveX) - df(positiveX) * positiveX) / df(positiveX) // Newton-Schritt
-            const yIntercept = 0;
-
-            if (!chart)
-            {
+            const currentPoint = { x: currentX, y: f(currentX) };
+            const tangentPoints = generateTangentPoints(currentX);
+            
+            // Berechne X-Achsenabschnitt der Tangente (nächster Newton-Schritt)
+            const nextX = currentX - f(currentX) / df(currentX);
+            
+            // Finde die Nullstellen (für die Anzeige)
+            const rootB = b;
+            const rootC = c;
+            
+            if (!chart) {
+                // Erstelle den Chart nur einmal
                 chart = new Chart(ctx, {
                     type: 'scatter',
                     data: {
                         datasets: [
                             {
                                 label: 'Graph von f(x)',
-                                data: { functionPoints },
+                                data: functionPoints,
                                 showLine: true,
                                 borderColor: 'blue',
+                                backgroundColor: 'transparent',
+                                borderWidth: 2,
+                                pointRadius: 0
+                            },
+                            {
+                                label: 'Nullstellen',
+                                data: [
+                                    { x: rootB, y: 0 },
+                                    { x: rootC, y: 0 }
+                                ],
+                                borderColor: 'red',
+                                backgroundColor: 'red',
+                                pointRadius: 5
+                            },
+                            {
+                                label: 'Aktueller Punkt',
+                                data: [currentPoint],
+                                borderColor: 'green',
+                                backgroundColor: 'green',
+                                pointRadius: 6
+                            },
+                            {
+                                label: 'Tangente',
+                                data: tangentPoints,
+                                showLine: true,
+                                borderColor: '#66d9ef',
+                                borderWidth: 2,
                                 backgroundColor: 'transparent',
                                 pointRadius: 0
                             },
                             {
-                                label: 'Gesuchter Punkt f(x)=0',
-                                data: [{ x: b, y: 0 }],
-                                borderColor: 'blue',
-                                backgroundColor: 'blue',
-                                pointRadius: 5,
-                                displayColors: false
+                                label: 'Nächster X-Wert',
+                                data: [{ x: nextX, y: 0 }],
+                                borderColor: 'yellow',
+                                backgroundColor: 'yellow',
+                                pointRadius: 6
                             },
                             {
-                                label: 'Newton-Schritt Punkt',
-                                data: [currentPoint],
-                                borderColor: 'green',
-                                pointBackgroundColor: 'green',
-                                backgroundColor: 'green',
-                                pointRadius: 5
+                                label: 'Element to hide',
+                                data: [{ x: nextX, y: -50 }, { x: nextX, y: 50 }],
+                                showLine: true,
+                                borderColor: 'rgba(255, 255, 0, 0.3)',
+                                borderWidth: 1,
+                                borderDash: [5, 5],
+                                backgroundColor: 'transparent',
+                                pointRadius: 0
                             }
                         ]
                     },
                     options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
                         animation: {
-                            duration: 100
+                            duration: 600,
+                            easing: 'easeOutQuart'
                         },
                         scales: {
                             x: {
                                 type: 'linear',
                                 position: 'bottom',
                                 min: -4,
-                                max: 4
+                                max: 4,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'x',
+                                    color: 'white',
+                                    font: {
+                                        size: 16
+                                    }
+                                }
                             },
                             y: {
                                 type: 'linear',
                                 position: 'left',
                                 min: -40,
-                                max: 40
+                                max: 40,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'f(x)',
+                                    color: 'white',
+                                    font: {
+                                        size: 16
+                                    }
+                                }
                             }
                         },
                         plugins: {
                             legend: {
-                                labels: {
-                                    filter: function (legendItem, chartData)
-                                    {
-                                        // Return false to hide the legend item
-                                        return legendItem.text !== 'Element to hide';
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.dataset.label || '';
+                                        const x = context.parsed.x.toFixed(4);
+                                        const y = context.parsed.y.toFixed(4);
+                                        return `${label}: (${x}, ${y})`;
                                     }
                                 }
                             }
                         }
                     }
                 });
-            } else
-            {
+            } else {
+                // Aktualisiere nur die Daten, nicht den gesamten Chart
                 chart.data.datasets[0].data = functionPoints;
+                chart.data.datasets[1].data = [
+                    { x: rootB, y: 0 },
+                    { x: rootC, y: 0 }
+                ];
                 chart.data.datasets[2].data = [currentPoint];
-                chart.update();
+                chart.data.datasets[3].data = tangentPoints;
+                chart.data.datasets[4].data = [{ x: nextX, y: 0 }];
+                chart.data.datasets[5].data = [{ x: nextX, y: -50 }, { x: nextX, y: 50 }];
+                
+                // Aktualisiere den Chart mit minimaler Animation
+                chart.update('none');
             }
-
-            return xIntercept;
         }
 
+        function updateChartWithoutReloading(currentPoint, tangentPoints, nextX) {
+            // Aktualisiere nur die beweglichen Elemente ohne Neurendering der Funktion
+            chart.data.datasets[2].data = [currentPoint];
+            chart.data.datasets[3].data = tangentPoints;
+            chart.data.datasets[4].data = [{ x: nextX, y: 0 }];
+            chart.data.datasets[5].data = [{ x: nextX, y: -50 }, { x: nextX, y: 50 }];
+            
+            // Aktualisiere den Chart ohne Animation
+            chart.update('none');
+        }
 
-        function nextStep()
-        {
+        function nextStep() {
+            if (animationInProgress || rootFound) return;
+            
+            animationInProgress = true;
+            document.getElementById('nextStep').disabled = true;
+            
             iterations++;
-            const xIntercept = - (f(positiveX) - df(positiveX) * positiveX) / df(positiveX) // Newton-Schritt
-            const yIntercept = 1;
-
-            if (Math.abs(yIntercept) < 0.01 || (iterations > 1 && Math.abs(xIntercept - prevIntercept) < 0.01))
-            {
+            
+            // Aktueller Punkt
+            const currentY = f(currentX);
+            const slope = df(currentX);
+            
+            // Berechne nächsten Punkt mit Newton-Verfahren
+            const nextX = currentX - currentY / slope;
+            
+            // Aktualisiere die Info-Anzeige
+            const tangentEquation = `y = ${slope.toFixed(2)}(x - ${currentX.toFixed(4)}) + ${currentY.toFixed(4)}`;
+            const newtonStep = `x<sub>${iterations}</sub> = ${currentX.toFixed(4)} - ${currentY.toFixed(4)} / ${slope.toFixed(4)} = ${nextX.toFixed(4)}`;
+            
+            document.getElementById('iterationDetails').innerHTML = `
+                <strong>Iteration ${iterations}:</strong><br>
+                f(${currentX.toFixed(4)}) = ${currentY.toFixed(4)}<br>
+                f'(${currentX.toFixed(4)}) = ${slope.toFixed(4)}<br>
+                Tangente: <span id="tangentLine">${tangentEquation}</span><br>
+                ${newtonStep}
+            `;
+            
+            // Prüfe auf Konvergenz
+            const error = Math.abs(f(nextX));
+            const xDiff = prevX !== null ? Math.abs(nextX - prevX) : Infinity;
+            
+            if (error < 0.01 || xDiff < 0.0001) {
+                rootFound = true;
+                document.getElementById('info').innerHTML += `
+                    <p style="color: #66ff66; font-weight: bold; margin-top: 15px;">
+                        Konvergenz erreicht nach ${iterations} Iterationen.<br>
+                        Nullstelle gefunden bei x ≈ ${nextX.toFixed(6)}
+                    </p>
+                `;
                 document.getElementById('nextStep').disabled = true;
-                document.getElementById('info').innerHTML = `Konvergenz erreicht nach ${iterations} Iterationen.<br>Nullstelle: x ≈ ${xIntercept.toFixed(4)}`;
-                return;
             }
-
-            positiveX = xIntercept; // Newton-Verfahren verwendet einen einzigen Punkt
-
-            document.getElementById('info').innerHTML = `Iteration ${iterations}<br>Schittpunktnäherung durch Newton-Verfahren bei x = ${xIntercept.toFixed(4)}`;
-            prevIntercept = xIntercept;
-
-            updateChart()
+            
+            // Animiere den Übergang zum nächsten Punkt
+            const animationSteps = 20;
+            let step = 0;
+            
+            function animate() {
+                if (step >= animationSteps) {
+                    // Animation abgeschlossen
+                    currentX = nextX;
+                    const currentPoint = { x: currentX, y: f(currentX) };
+                    const tangentPoints = generateTangentPoints(currentX);
+                    const newNextX = currentX - f(currentX) / df(currentX);
+                    
+                    // Aktualisiere den Chart ohne Neurendering der gesamten Funktion
+                    updateChartWithoutReloading(currentPoint, tangentPoints, newNextX);
+                    
+                    animationInProgress = false;
+                    
+                    if (!rootFound) {
+                        document.getElementById('nextStep').disabled = false;
+                    }
+                    
+                    prevX = currentX;
+                    return;
+                }
+                
+                const ratio = step / animationSteps;
+                const intermediateX = currentX + (nextX - currentX) * ratio;
+                const intermediatePoint = { x: intermediateX, y: f(intermediateX) };
+                const intermediateTangentPoints = generateTangentPoints(intermediateX);
+                
+                // Aktualisiere nur die beweglichen Elemente
+                updateChartWithoutReloading(intermediatePoint, intermediateTangentPoints, nextX);
+                
+                step++;
+                requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+        
+        function resetFunction(randomize = true) {
+            iterations = 0;
+            rootFound = false;
+            prevX = null;
+            
+            if (randomize) {
+                // Zufällige Werte für a, b, c und Startpunkt setzen
+                paramASlider.value = (Math.random() < 0.5 ? -1 : 1) * (Math.random() * 1.5 + 0.5);
+                paramAValue.textContent = parseFloat(paramASlider.value).toFixed(1);
+                
+                paramBSlider.value = (Math.random() < 0.5 ? -1 : 1) * (Math.random() * 2.5 + 0.5);
+                paramBValue.textContent = parseFloat(paramBSlider.value).toFixed(1);
+                
+                paramCSlider.value = Math.round((Math.random() < 0.5 ? -1 : 1) * (Math.random() * 8 + 4));
+                paramCValue.textContent = paramCSlider.value;
+                
+                startPointSlider.value = (Math.random() < 0.5 ? -1 : 1) * (Math.random() * 2.5 + 0.5);
+                startPointValue.textContent = parseFloat(startPointSlider.value).toFixed(1);
+            }
+            
+            initFunction();
+            document.getElementById('nextStep').disabled = false;
+            document.getElementById('iterationDetails').innerHTML = '';
+            document.getElementById('info').innerHTML = `
+                <p>Das Newton-Verfahren nutzt die Tangente am aktuellen Punkt, um die nächste Annäherung zu finden.</p>
+                <p class="formula">x<sub>n+1</sub> = x<sub>n</sub> - f(x<sub>n</sub>) / f'(x<sub>n</sub>)</p>
+                <p>Klicke auf "Nächster Schritt" um zu starten.</p>
+                <div class="iteration-details" id="iterationDetails"></div>
+            `;
         }
 
-
-        initFunction();
+        // Event-Listener einrichten
         document.getElementById('nextStep').addEventListener('click', nextStep);
-        nextStep()
+        document.getElementById('reset').addEventListener('click', () => resetFunction(true));
+
+        // Initialisierung
+        initFunction();
     </script>
 </body>
 
